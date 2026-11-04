@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#18202C"
+    android:orientation="vertical"
+    android:fitsSystemWindows="true"
+    android:paddingLeft="14dp"
+    android:paddingRight="14dp"
+    android:paddingTop="18dp"
+    android:paddingBottom="70dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="BT Dyktafon - SCO / LE"
+        android:textStyle="bold"
+        android:textSize="23sp"
+        android:textColor="#FFFFFF" />
+
+    <TextView
+        android:id="@+id/timer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"
+        android:text="00:00"
+        android:textSize="44sp"
+        android:textColor="#FFFFFF" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="#222D3B"
+        android:fillViewport="true"
+        android:padding="12dp">
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:text="Uruchamianie..."
+            android:textColor="#E4F0F9"
+            android:textSize="13sp"
+            android:textIsSelectable="true" />
+    </ScrollView>
+
+    <Button
+        android:id="@+id/choose_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="WYBIERZ WEJSCIE BT" />
+
+    <Button
+        android:id="@+id/mode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="TRYB: MIC (ZMIEN)" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <Button
+            android:id="@+id/check_bt"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="SPRAWDZ BT" />
+        <Button
+            android:id="@+id/copy_report"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="KOPIUJ" />
+        <Button
+            android:id="@+id/record"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="NAGRYWAJ" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Zapis: Muzyka / BT Dyktafon 48k (M4A, AAC 48 kHz)"
+        android:textColor="#C0D0DB"
+        android:textSize="12sp"
+        android:paddingTop="4dp"/>
+</LinearLayout>
