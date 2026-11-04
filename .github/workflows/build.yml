@@ -1,0 +1,99 @@
+name: Build BT Dyktafon 48k APK
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "import/**"
+      - ".github/workflows/build.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Android SDK command line tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          export ANDROID_SDK_ROOT="$HOME/android-sdk"
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+          curl -fsSL "https://dl.google.com/android/repository/commandlinetools-linux-15859902_latest.zip" -o /tmp/cmdline-tools.zip
+          unzip -q /tmp/cmdline-tools.zip -d /tmp/voice-sdk
+          mv /tmp/voice-sdk/cmdline-tools "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+
+      - name: Install Android platform
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Unpack recorder sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dyktafon-source
+          base64 -d import/source-v10.tar.xz.b64 > /tmp/voice.tar.xz
+          tar -xJf /tmp/voice.tar.xz -C dyktafon-source
+          test -f dyktafon-source/app/src/main/java/com/malcerz/btvoicerecorder/MainActivity.java
+
+      - name: Apply SCO and LE input diagnostics
+        run: python3 import/upgrade_v11.py
+
+      - name: Package complete diagnostic project
+        run: |
+          cd dyktafon-source
+          zip -qr ../BTVoiceRecorder48k-v1.1-source.zip . -x "*/build/*" ".gradle/*"
+
+      - name: Compile APK
+        working-directory: dyktafon-source
+        run: gradle :app:assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: BTVoiceRecorder48k-v1.1-sco-le-debug
+          path: dyktafon-source/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload sources
+        uses: actions/upload-artifact@v4
+        with:
+          name: BTVoiceRecorder48k-v1.1-sources
+          path: BTVoiceRecorder48k-v1.1-source.zip
+
+      - name: Publish unpacked recorder sources on main
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp -a dyktafon-source/app ./app
+          cp dyktafon-source/build.gradle dyktafon-source/settings.gradle dyktafon-source/gradle.properties ./ 
+          cp dyktafon-source/README.md ./README.md
+          cat > .gitignore <<'EOF'
+          .gradle/
+          .idea/
+          local.properties
+          **/build/
+          *.iml
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src app/build.gradle build.gradle settings.gradle gradle.properties README.md .gitignore
+          if ! git diff --staged --quiet; then
+            git commit -m "Publish SCO/LE Bluetooth recorder Android sources after successful build"
+            git push origin HEAD:main
+          fi
